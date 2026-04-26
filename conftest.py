@@ -1,7 +1,7 @@
 import pytest
 
-from api.requests.entity_api import EntityApi
-from api.requests.models import EntityRequest, AdditionRequest
+from api.entity.entity_api import EntityApi
+from api.entity.models.request_models import AdditionRequest, EntityRequest
 from data.data_api import BASE_URL
 
 
