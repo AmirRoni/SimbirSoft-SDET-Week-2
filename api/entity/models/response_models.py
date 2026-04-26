@@ -5,10 +5,6 @@ class CreateEntityResponse(RootModel[str]):
     pass
 
 
-class DeleteEntityResponse(RootModel[str]):
-    pass
-
-
 class AdditionResponse(BaseModel):
     id: int
     additional_info: str
@@ -23,5 +19,5 @@ class EntityResponse(BaseModel):
     verified: bool
 
 
-class GetAllEntitiesResponse(RootModel[list[EntityResponse]]):
-    pass
+class GetAllEntitiesResponse(BaseModel):
+    entity: list[EntityResponse]
