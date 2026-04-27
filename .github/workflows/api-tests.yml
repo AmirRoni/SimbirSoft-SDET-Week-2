@@ -32,6 +32,9 @@ jobs:
         working-directory: test-service
         run: docker compose up --build -d
 
+      - name: Wait before tests
+        run: sleep 5
+
       - name: Run tests
         run: pytest -n 2 --dist=loadgroup --alluredir=allure-results
 
