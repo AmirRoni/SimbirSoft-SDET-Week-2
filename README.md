@@ -16,6 +16,20 @@ Swagger
 http://localhost:8080/api/_/docs/swagger/index.html#/
 ```
 
+Исходный репозиторий тестового сервиса:
+
+```
+https://github.com/sun6r0/test-service
+```
+
+Тестовый сервис запускается через Docker Compose и включает:
+
+- Go API-сервис
+- PostgreSQL
+- миграции базы данных
+
+---
+
 ## Описание проекта
 
 В проекте реализованы API-автотесты для проверки всех основных точек доступа тестового приложения.
@@ -36,6 +50,8 @@ http://localhost:8080/api/_/docs/swagger/index.html#/
 - pydantic
 - Allure Report
 - pytest-xdist
+- GitHub Actions
+- Docker Compose
 
 ---
 
@@ -99,9 +115,10 @@ helper-функцию `assert_entity_matches_payload`.
 
 1. Сформировать тело запроса для создания сущности.
 2. Отправить POST-запрос на `/api/create`.
-3. Проверить, что сервер вернул статус-код 200.
-4. Проверить, что в ответе вернулся id созданной сущности.
-5. Проверить, что id является числом.
+3. Проверить, что сервер вернул статус-код `200`.
+4. Десериализовать ответ в модель `CreateEntityResponse`.
+5. Проверить, что в ответе вернулся id созданной сущности.
+6. Проверить, что id является числом.
 
 ### 2. Получение сущности по id
 
@@ -163,24 +180,36 @@ helper-функцию `assert_entity_matches_payload`.
 3. Проверить, что сервер вернул статус-код `204`.
 4. Проверить, что тело ответа пустое.
 
+---
+
 ## Allure Report
 
 В проект добавлено формирование Allure-отчётов.
 
 В тестах используются:
 
-* `@allure.feature`
-* `@allure.story`
-* `@allure.title`
-* `allure.step`
+- `@allure.feature`
+- `@allure.story`
+- `@allure.title`
+- `allure.step`
 
 Запуск тестов с генерацией Allure-results:
 
-`pytest --alluredir=allure-results`
+```
+pytest --alluredir=allure-results
+```
 
 Открытие Allure-отчёта:
 
-`allure serve allure-results`
+```
+allure serve allure-results
+```
+
+Параллельный запуск с Allure:
+
+```
+pytest -n 2 --dist=loadgroup --alluredir=allure-
+```
 
 ---
 
@@ -190,29 +219,75 @@ helper-функцию `assert_entity_matches_payload`.
 
 Рекомендуемая команда запуска:
 
-`pytest -n 2 --dist=loadgroup`
+```
+pytest -n 2 --dist=loadgroup
+```
 
-Для тестов `Entity API` используется маркер `xdist_group("entity_api")`.
+Для тестов `Entity API` используется маркер:
 
-Это сделано для того, чтобы тесты, работающие с одним тестовым сервисом и общей базой данных, выполнялись в рамках одной
-группы. Такой подход предотвращает конкурентные операции записи в БД, из-за которых тестовое приложение может возвращать
-ошибки соединения с Postgres.
+```
+@pytest.mark.xdist_group("entity_api")
+```
 
-Команда для параллельного запуска с Allure:
+Это сделано для того, чтобы тесты, работающие с одним тестовым сервисом и общей базой данных, выполнялись в рамках одной группы.
 
-`pytest -n 2 --dist=loadgroup --alluredir=allure-results`
+Такой подход снижает риск конкурентных операций записи в БД, из-за которых тестовое приложение может возвращать ошибки соединения с PostgreSQL.
 
-Открытие отчёта:
+Параллельный запуск с Allure:
 
-`allure serve allure-results`
+```
+pytest -n 2 --dist=loadgroup --alluredir=allure-results
+```
 
 ---
 
-## Установка и запуск
+## CI/CD
 
-### 1. Клонировать репозиторий
+В проект добавлен запуск API-автотестов в GitHub Actions.
 
-```commandline
+Workflow-файл находится по пути:
+
+```
+.github/workflows/api-tests.yml
+```
+
+CI запускается:
+
+- автоматически при создании Pull Request в ветку `main`
+- вручную через вкладку **Actions** в GitHub
+
+В CI выполняются шаги:
+
+1. Клонируется репозиторий с автотестами.
+2. Клонируется репозиторий тестового сервиса `sun6r0/test-service`.
+3. Устанавливается Python 3.10.
+4. Устанавливаются зависимости из `requirements.txt`.
+5. Тестовый сервис запускается через Docker Compose.
+6. Выполняются API-автотесты через `pytest`.
+7. Allure-results сохраняются как artifact.
+8. Docker-контейнеры останавливаются после завершения job.
+
+Команда запуска тестов в CI:
+
+```
+pytest -n 2 --dist=loadgroup --alluredir=allure-results
+```
+
+Allure-results можно скачать из завершённого workflow в разделе **Artifacts**.
+
+После скачивания отчёт можно открыть локально:
+
+```
+allure serve allure-results
+```
+
+---
+
+## Установка и запуск локально
+
+### 1. Клонировать репозиторий с автотестами
+
+```
 git clone https://github.com/AmirRoni/SimbirSoft-SDET-Week-2.git
 cd SimbirSoft-SDET-Week-2
 ```
@@ -221,55 +296,63 @@ cd SimbirSoft-SDET-Week-2
 
 Windows:
 
-```commandline
+```
 python -m venv .venv
 .venv\Scripts\activate
 ```
 
 macOS / Linux:
 
-```commandline
+```
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
 ### 3. Установить зависимости
 
-```commandline
+```
 pip install -r requirements.txt
 ```
 
-### 4. Запустить тестовое приложение
+### 4. Клонировать тестовый сервис
 
-Перед запуском тестов приложение должно быть доступно по адресу:
+В отдельную папку рядом с проектом или в любое удобное место:
 
-```commandline
+```
+git clone https://github.com/sun6r0/test-service.git
+cd test-service
+```
+
+### 5. Запустить тестовый сервис
+
+```
+docker compose up --build -d
+```
+
+После запуска API должен быть доступен по адресу:
+
+```
 http://localhost:8080
 ```
-Если тестовое приложение запускается через Docker Compose:
 
-```commandline
-docker compose up -d
-```
+### 6. Запустить автотесты
 
-5. Запустить все тесты
-
-Обычный запуск:
+Из папки проекта с автотестами:
 
 ```
 pytest
-```
-
-Параллельный запуск:
-
-```
-pytest -n 2 --dist=loadgroup
 ```
 
 Запуск с Allure:
 
 ```
 pytest --alluredir=allure-results
+```
+
+Параллельный запуск:
+
+```
+pytest -n 2 --dist=loadgroup
 ```
 
 Параллельный запуск с Allure:
@@ -284,53 +367,80 @@ pytest -n 2 --dist=loadgroup --alluredir=allure-results
 allure serve allure-results
 ```
 
+---
+
 ## Покрытие по заданию
 
 По заданию требуется создать проект из пяти API-автотестов для всех точек доступа к приложению.
 
 В проекте реализованы 5 положительных API-автотестов:
 
-* `POST /api/create`
-* `GET /api/get/{entity_id}`
-* `GET /api/getAll`
-* `PATCH /api/patch/{entity_id}`
-* `DELETE /api/delete/{entity_id}`
+- `POST /api/create`
+- `GET /api/get/{entity_id}`
+- `GET /api/getAll`
+- `PATCH /api/patch/{entity_id}`
+- `DELETE /api/delete/{entity_id}`
 
 Дополнительно реализовано:
 
-* формирование Allure-отчётов
-* параллельный запуск тестов через `pytest-xdist`
+- формирование Allure-отчётов
+- параллельный запуск тестов через `pytest-xdist`
+- запуск тестов в GitHub Actions
+
+---
 
 ## Полезные команды
 
+Запуск всех тестов:
+
+```
+pytest
+```
+
 Запуск конкретного тестового файла:
 
-`pytest tests/api/test_create_entity.py`
+```
+pytest tests/api/test_create_entity.py
+```
+
+Запуск с Allure:
+
+```
+pytest --alluredir=allure-results
+```
 
 Параллельный запуск:
 
-`pytest -n 2 --dist=loadgroup`
-
-Запуск тестов с Allure:
-
-`pytest --alluredir=allure-results`
+```
+pytest -n 2 --dist=loadgroup
+```
 
 Параллельный запуск с Allure:
 
-`pytest -n 2 --dist=loadgroup --alluredir=allure-results`
+```
+pytest -n 2 --dist=loadgroup --alluredir=allure-results
+```
 
 Открытие Allure-отчёта:
 
-`allure serve allure-results`
+```
+allure serve allure-results
+```
+
+Запуск тестового сервиса:
+
+```
+docker compose up --build -d
+```
 
 Остановка Docker-контейнеров:
 
-`docker compose down`
+```
+docker compose down
+```
 
 Полный сброс контейнеров и volumes:
 
-`docker compose down -v`
-
-Запуск тестового приложения:
-
-`docker compose up -d`
+```
+docker compose down -v
+```
