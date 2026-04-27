@@ -2,7 +2,8 @@ import pytest
 
 from api.entity.entity_api import EntityApi
 from api.entity.models.response_models import CreateEntityResponse
-from data.data_api import BASE_URL, build_entity_payload
+from data.data_api import BASE_URL
+from data.entity_factory import EntityFactory
 
 
 @pytest.fixture
@@ -17,7 +18,7 @@ def entity_api(base_url: str) -> EntityApi:
 
 @pytest.fixture
 def entity_payload() -> dict:
-    return build_entity_payload()
+    return EntityFactory.build_payload()
 
 
 @pytest.fixture
