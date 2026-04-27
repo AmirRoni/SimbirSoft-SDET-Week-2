@@ -1,0 +1,41 @@
+name: CI - Integration Test
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tests repository
+        uses: actions/checkout@v4
+
+      - name: Checkout test service repository
+        uses: actions/checkout@v4
+        with:
+          repository: sun6r0/test-service
+          path: test-service
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Start test service
+        working-directory: test-service
+        run: docker compose up --build -d
+
+      - name: Run tests
+        run: pytest
+
+      - name: Stop test service
+        if: always()
+        working-directory: test-service
+        run: docker compose down -v
