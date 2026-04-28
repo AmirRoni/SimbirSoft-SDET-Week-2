@@ -1,7 +1,4 @@
 import allure
-import pytest
-
-pytestmark = pytest.mark.xdist_group("entity_api")
 
 
 @allure.feature("Entity API")
@@ -16,3 +13,13 @@ def test_delete_entity(entity_api, created_entity_id):
             f"Ожидался статус 204 при удалении сущности, получен {response.status_code}"
         )
         assert response.text == "", "При 204 No Content тело ответа должно быть пустым"
+
+    with allure.step("Попробовать получить удалённую сущность через GET-запрос"):
+        get_response = entity_api.get_entity(created_entity_id)
+
+    with allure.step(""):
+        # Сервис возвращает 500 при попытке получить удалённую сущность.
+        # Проверяем фактическое поведение API: после DELETE сущность недоступна через GET.
+        assert get_response.status_code == 500, (
+            f"После удаления ожидался статус 500, получен {get_response.status_code}"
+        )

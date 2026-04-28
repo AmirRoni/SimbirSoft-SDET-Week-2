@@ -2,24 +2,45 @@ import allure
 import pytest
 
 from api.entity.models.response_models import EntityResponse
-from data.entity_factory import EntityFactory
 from tests.api.assertions import assert_entity_matches_payload
 
-pytestmark = pytest.mark.xdist_group("entity_api")
 
-
+@pytest.mark.parametrize(
+    "updated_payload",
+    [
+        {
+            "addition": {
+                "additional_info": "Обновлены дополнительные сведения",
+                "additional_number": 456,
+            },
+            "important_numbers": [10, 20, 30],
+            "title": "Обновлённый заголовок сущности",
+            "verified": False,
+        },
+        {
+            "addition": {
+                "additional_info": "Снова обновлены дополнительные сведения",
+                "additional_number": 789,
+            },
+            "important_numbers": [1, 2, 3, 4, 5],
+            "title": "Второй вариант обновления",
+            "verified": True,
+        },
+        {
+            "addition": {
+                "additional_info": "Финальное обноеление дополнительных сведений",
+                "additional_number": 999,
+            },
+            "important_numbers": [100, 200, 300],
+            "title": "Третий вариант обновления",
+            "verified": False,
+        },
+    ],
+)
 @allure.feature("Entity API")
 @allure.story("Обновление сущности")
 @allure.title("Обновление сущности через PATCH")
-def test_patch_entity(entity_api, created_entity_id):
-    updated_payload = EntityFactory.build_payload(
-        title="Обновлённый заголовок сущности",
-        additional_info="Обновлённые дополнительные сведения",
-        additional_number=999,
-        important_numbers=[10, 20, 30],
-        verified=False,
-    )
-
+def test_patch_entity(entity_api, created_entity_id, updated_payload):
     with allure.step("Отправить PATCH-запрос на обновление сущности"):
         patch_response = entity_api.patch_entity(created_entity_id, updated_payload)
 
