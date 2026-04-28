@@ -17,7 +17,7 @@ jobs:
       - name: Checkout test service repository
         uses: actions/checkout@v4
         with:
-          repository: sun6r0/test-service
+          repository: bondarenkokate73/simbirsoft_sdet_project
           path: test-service
 
       - name: Set up Python
@@ -36,7 +36,7 @@ jobs:
         run: sleep 5
 
       - name: Run tests
-        run: pytest -n 2 --dist=loadgroup --alluredir=allure-results
+        run: pytest -n 7 --alluredir=allure-results
 
       - name: Upload Allure results
         if: always()

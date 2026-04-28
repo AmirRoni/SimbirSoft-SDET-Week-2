@@ -1,10 +1,7 @@
 import allure
-import pytest
 
 from api.entity.models.response_models import EntityResponse
 from tests.api.assertions import assert_entity_matches_payload
-
-pytestmark = pytest.mark.xdist_group("entity_api")
 
 
 @allure.feature("Entity API")

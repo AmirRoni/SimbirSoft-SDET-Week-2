@@ -21,13 +21,3 @@ class EntityFactory:
         )
 
         return payload.model_dump()
-
-    @staticmethod
-    def build_updated_payload() -> dict:
-        return EntityFactory.build_payload(
-            title="Обновлённый заголовок сущности",
-            additional_info="Обновлённые дополнительные сведения",
-            additional_number=999,
-            important_numbers=[10, 20, 30],
-            verified=False,
-        )
